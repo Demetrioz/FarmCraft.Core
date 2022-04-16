@@ -1,2 +1,16 @@
 - name: Introduction
   href: intro.md
+- name: Using FarmCraft.Core
+  items:
+    - name: Introduction
+      href: core_intro.md
+    - name: The Core Actor System
+      href: core_actors.md
+    - name: The Core Web API
+      href: core_api.md
+    - name: Database Connections
+      href: core_database.md
+    - name: Building the Service
+      href: core_building.md
+    - name: Working With the Message Broker
+      href: core_broker.md

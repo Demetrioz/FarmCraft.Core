@@ -11,11 +11,11 @@ namespace FarmCraft.Core.Actors
     /// a message broker
     /// </summary>
     /// <typeparam name="T">Any class that derives from the FarmCraftManager type</typeparam>
-    public class FarmCraftCore<T> : BackgroundService where T : FarmCraftManager
+    public abstract class FarmCraftCore<T> : BackgroundService where T : FarmCraftManager
     {
-        private ActorSystem _actorSystem;
-        private IActorRef _root;
-        private readonly IServiceProvider _serviceProvider;
+        protected ActorSystem _actorSystem;
+        protected IActorRef _root;
+        protected readonly IServiceProvider _serviceProvider;
 
         public FarmCraftCore(IServiceProvider provider)
         {

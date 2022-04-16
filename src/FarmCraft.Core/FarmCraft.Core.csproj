@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Akka" Version="1.4.36" />
     <PackageReference Include="Akka.DependencyInjection" Version="1.4.36" />
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.7.0" />
     <PackageReference Include="EntityFrameworkCore.Triggers" Version="1.2.3" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
