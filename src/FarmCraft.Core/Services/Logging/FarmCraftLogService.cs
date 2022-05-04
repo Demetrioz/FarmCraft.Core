@@ -1,21 +1,22 @@
 ﻿using FarmCraft.Core.Data.Context;
 using FarmCraft.Core.Data.Entities;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 namespace FarmCraft.Core.Services.Logging
 {
     public class FarmCraftLogService<T> : ILogService where T : class
     {
-        private readonly FarmCraftContext _context;
+        private readonly IServiceProvider _provider;
         private readonly string _source;
 
         /// <summary>
         /// Sets the LogService's context and source
         /// </summary>
         /// <param name="context"></param>
-        public FarmCraftLogService(FarmCraftContext context) 
+        public FarmCraftLogService(IServiceProvider provider) 
         {
-            _context = context;
+            _provider = provider;
             _source = typeof(T).Name;
         }
 
@@ -28,17 +29,23 @@ namespace FarmCraft.Core.Services.Logging
         /// <returns></returns>
         public async Task LogAsync(Exception ex)
         {
-            await _context.AddAsync(new FarmCraftLog
+            using (IServiceScope scope = _provider.CreateScope())
             {
-                LogId = Guid.NewGuid().ToString(),
-                Timestamp = DateTimeOffset.UtcNow,
-                LogLevel = LogLevel.Error,
-                Source = _source,
-                Message = $"{ex.Message} || {ex.InnerException?.Message}",
-                Data = ex.StackTrace
-            });
+                FarmCraftContext dbContext = scope.ServiceProvider
+                    .GetRequiredService<FarmCraftContext>();
 
-            await _context.SaveChangesAsync();
+                await dbContext.AddAsync(new FarmCraftLog
+                {
+                    LogId = Guid.NewGuid().ToString(),
+                    Timestamp = DateTimeOffset.UtcNow,
+                    LogLevel = LogLevel.Error,
+                    Source = _source,
+                    Message = $"{ex.Message} || {ex.InnerException?.Message}",
+                    Data = ex.StackTrace
+                });
+
+                await dbContext.SaveChangesAsync();
+            }
         }
 
         /// <summary>
@@ -54,17 +61,23 @@ namespace FarmCraft.Core.Services.Logging
                 ? JsonConvert.SerializeObject(data)
                 : null;
 
-            await _context.AddAsync(new FarmCraftLog
+            using (IServiceScope scope = _provider.CreateScope())
             {
-                LogId = Guid.NewGuid().ToString(),
-                Timestamp = DateTimeOffset.UtcNow,
-                LogLevel = level,
-                Source = _source,
-                Message = message,
-                Data = dataString
-            });
+                FarmCraftContext dbContext = scope.ServiceProvider
+                    .GetRequiredService<FarmCraftContext>();
 
-            await _context.SaveChangesAsync();
+                await dbContext.AddAsync(new FarmCraftLog
+                {
+                    LogId = Guid.NewGuid().ToString(),
+                    Timestamp = DateTimeOffset.UtcNow,
+                    LogLevel = level,
+                    Source = _source,
+                    Message = message,
+                    Data = dataString
+                });
+
+                await dbContext.SaveChangesAsync();
+            }
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using FarmCraft.Core.Messaging;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using FarmCraft.Core.Services.Logging;
 using Newtonsoft.Json;
 
 namespace FarmCraft.Core.Services.Messaging.Publisher
@@ -11,8 +10,8 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
     /// </summary>
     public class ServiceBusPublisher : IMessagePublisher, IDisposable
     {
-        private readonly ILogger _logger;
-        private static ServiceBusSender? _sender;
+        private readonly FarmCraftLogService<ServiceBusPublisher> _logger;
+        private readonly ServiceBusSender _sender;
 
         /// <summary>
         /// Creates a singular ServiceBusClient and ServiceBusSender if they haven't
@@ -22,19 +21,15 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
         /// <param name="logger">A generic logger</param>
         public ServiceBusPublisher(
             MessageBusService service, 
-            IOptions<PublisherOptions> options, 
-            ILogger logger
+            PublisherOptions options, 
+            FarmCraftLogService<ServiceBusPublisher> logger
         )
         {
             if (service == null)
                 throw new Exception("MessageBusService missing");
 
             _logger = logger;
-
-            PublisherOptions publisherOptions = options.Value;
-
-            if(_sender == null)
-                _sender = service.CreatePublisher(publisherOptions.Queue);
+            _sender = service.CreatePublisher(options.Queue);
         }
 
         /// <summary>
@@ -43,8 +38,7 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
         /// </summary>
         public void Dispose()
         {
-            if (_sender != null)
-                _sender.DisposeAsync().GetAwaiter().GetResult();
+            _sender.DisposeAsync().GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -54,9 +48,6 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
         /// <returns></returns>
         public async Task PublishMessage(FarmCraftMessage message)
         {
-            if (_sender == null)
-                throw new Exception("Sender not initialized");
-
             try
             {
                 string stringMessage = JsonConvert.SerializeObject(message);
@@ -65,7 +56,7 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
             }
             catch(Exception ex)
             {
-                _logger.LogError(ex.Message);
+                await _logger.LogAsync(ex);
             }
         }
 
@@ -78,9 +69,6 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
         /// <exception cref="Exception"></exception>
         public async Task PublishMessageBatch(List<IMessage> messages, int batchSize)
         {
-            if (_sender == null)
-                throw new Exception("Sender not initialized");
-
             ServiceBusMessageBatch batch = await _sender.CreateMessageBatchAsync();
             for(int i = 0; i < messages.Count; i++)
             {
@@ -110,16 +98,13 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
         /// <returns></returns>
         private async Task TrySendBatch(ServiceBusMessageBatch batch)
         {
-            if (_sender == null)
-                throw new Exception("Sender not initialized");
-
             try
             {
                 await _sender.SendMessagesAsync(batch);
             }
             catch(Exception ex)
             {
-                _logger.LogError(ex.Message);
+                await _logger.LogAsync(ex);
             }
             finally
             {

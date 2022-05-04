@@ -1,8 +1,8 @@
 ﻿using Azure.Messaging.ServiceBus;
+using FarmCraft.Core.Data.Entities;
 using FarmCraft.Core.Messaging;
+using FarmCraft.Core.Services.Logging;
 using FarmCraft.Core.Services.Messaging.Handler;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 
@@ -13,8 +13,8 @@ namespace FarmCraft.Core.Services.Messaging.Consumer
     /// </summary>
     public class ServiceBusConsumer : IMessageConsumer, IDisposable
     {
-        private readonly ILogger _logger;
-        private static ServiceBusProcessor? _processor;
+        private readonly FarmCraftLogService<ServiceBusConsumer> _logger;
+        private readonly ServiceBusProcessor _processor;
 
         private ConcurrentDictionary<Type, IMessageHandler> _handlers = 
             new ConcurrentDictionary<Type, IMessageHandler>();
@@ -29,8 +29,8 @@ namespace FarmCraft.Core.Services.Messaging.Consumer
         /// <param name="logger">A generic logger</param>
         public ServiceBusConsumer(
             MessageBusService service,
-            IOptions<ConsumerOptions> options, 
-            ILogger logger
+            ConsumerOptions options, 
+            FarmCraftLogService<ServiceBusConsumer> logger
         )
         {
             if (service == null)
@@ -38,11 +38,9 @@ namespace FarmCraft.Core.Services.Messaging.Consumer
 
             _logger = logger;
 
-            ConsumerOptions consumerOptions = options.Value;
-
             if (_processor == null)
             {
-                _processor = service.CreateConsumer(consumerOptions.Queue);
+                _processor = service.CreateConsumer(options.Queue);
 
                 _processor.ProcessMessageAsync += HandleMessage;
                 _processor.ProcessErrorAsync += HandleError;
@@ -55,14 +53,12 @@ namespace FarmCraft.Core.Services.Messaging.Consumer
         /// </summary>
         public void Dispose()
         {
-            if (_processor != null)
-                _processor.DisposeAsync().GetAwaiter().GetResult();
+            _processor.DisposeAsync().GetAwaiter().GetResult();
         }
 
         public async Task BeginProcessing()
         {
-            if(_processor != null)
-                await _processor.StartProcessingAsync();
+            await _processor.StartProcessingAsync();
         }
 
         /// <summary>
@@ -120,11 +116,15 @@ namespace FarmCraft.Core.Services.Messaging.Consumer
                     await args.CompleteMessageAsync(args.Message);
                 }
                 else 
-                    _logger.LogWarning($"Handler not found for {message.MessageType}");
+                    await _logger.LogAsync(
+                        LogLevel.Warning,
+                        $"Handler not found for {message.MessageType}",
+                        null
+                    );
             }
             catch(Exception ex)
             {
-                _logger.LogError(ex.Message);
+                await _logger.LogAsync(ex);
                 await args.DeadLetterMessageAsync(args.Message);
             }
         }
@@ -134,10 +134,9 @@ namespace FarmCraft.Core.Services.Messaging.Consumer
         /// </summary>
         /// <param name="args">The event arguments from Azure Service Bus</param>
         /// <returns></returns>
-        public virtual Task HandleError(ProcessErrorEventArgs args)
+        public async Task HandleError(ProcessErrorEventArgs args)
         {
-            _logger.LogError(args.Exception.ToString());
-            return Task.CompletedTask;
+            await _logger.LogAsync(args.Exception);
         }
     }
 }
