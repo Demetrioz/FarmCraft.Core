@@ -1,4 +1,4 @@
-﻿namespace FarmCraft.Core.Services.Messaging
+﻿namespace FarmCraft.Core.Services.Messaging.Publisher
 {
     /// <summary>
     /// A generic set of options used to connect to a 

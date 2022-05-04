@@ -1,6 +1,7 @@
 ﻿using FarmCraft.Core.Messaging;
+using FarmCraft.Core.Services.Messaging.Handler;
 
-namespace FarmCraft.Core.Services.Messaging
+namespace FarmCraft.Core.Services.Messaging.Consumer
 {
     /// <summary>
     /// An interface for consuming messages from a message broker
@@ -22,5 +23,11 @@ namespace FarmCraft.Core.Services.Messaging
         /// <param name="handler">The action that should be called when receiving
         /// a message of type T</param>
         void Register<T>(Action<FarmCraftMessage> handler) where T : IMessage;
+
+        /// <summary>
+        /// Begin processing messages from the designated queue
+        /// </summary>
+        /// <returns></returns>
+        Task BeginProcessing();
     }
 }

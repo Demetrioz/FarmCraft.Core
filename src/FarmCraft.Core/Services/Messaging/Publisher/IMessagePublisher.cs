@@ -1,6 +1,6 @@
 ﻿using FarmCraft.Core.Messaging;
 
-namespace FarmCraft.Core.Services.Messaging
+namespace FarmCraft.Core.Services.Messaging.Publisher
 {
     /// <summary>
     /// An interface for publishing messages to a message broker

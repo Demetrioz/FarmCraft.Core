@@ -1,4 +1,4 @@
-﻿namespace FarmCraft.Core.Services.Messaging
+﻿namespace FarmCraft.Core.Services.Messaging.Handler
 {
     /// <summary>
     /// An Interface for classes that can be registered

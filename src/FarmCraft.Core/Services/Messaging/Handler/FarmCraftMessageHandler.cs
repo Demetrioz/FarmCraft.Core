@@ -1,7 +1,7 @@
 ﻿using FarmCraft.Core.Messaging;
 using Newtonsoft.Json;
 
-namespace FarmCraft.Core.Services.Messaging
+namespace FarmCraft.Core.Services.Messaging.Handler
 {
     /// <summary>
     /// A base class that can be used to create message handlers within
