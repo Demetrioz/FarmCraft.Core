@@ -15,6 +15,8 @@ namespace FarmCraft.Core.Data.Context
     {
         public FarmCraftContext(DbContextOptions<FarmCraftContext> options) : base(options) { }
 
+        public DbSet<FarmCraftLog>? Logs { get; set; }
+
         /// <summary>
         /// Static method called during startup to initialize triggers on the database
         /// </summary>

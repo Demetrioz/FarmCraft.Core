@@ -25,6 +25,8 @@ namespace FarmCraft.Core.Data.Converters
 
                 switch (value)
                 {
+                    case "Debug":
+                        return LogLevel.Debug;
                     case "Info":
                         return LogLevel.Info;
                     case "Warning":
@@ -57,6 +59,9 @@ namespace FarmCraft.Core.Data.Converters
 
                 switch (level)
                 {
+                    case LogLevel.Debug:
+                        writer.WriteValue("Debug");
+                        break;
                     case LogLevel.Info:
                         writer.WriteValue("Info");
                         break;
