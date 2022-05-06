@@ -26,7 +26,7 @@ namespace FarmCraft.Core.Tests.ActorTests.Actors
             _publisher = new ServiceBusPublisher(
                 service,
                 "poc_alerts",
-                new FarmCraftLogService<ServiceBusPublisher>(provider)
+                new FarmCraftLogService(provider)
             );
 
             Receive<AskToPublishTelemetry>(message => PublishTelemetry(message));

@@ -11,7 +11,7 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
     /// </summary>
     public class ServiceBusPublisher : IMessagePublisher, IDisposable
     {
-        private readonly FarmCraftLogService<ServiceBusPublisher> _logger;
+        private readonly FarmCraftLogService _logger;
         private readonly ServiceBusSender _sender;
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
         public ServiceBusPublisher(
             MessageBusService service, 
             string queueName,
-            FarmCraftLogService<ServiceBusPublisher> logger
+            FarmCraftLogService logger
         )
         {
             if (service == null)
@@ -57,7 +57,7 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
             }
             catch(Exception ex)
             {
-                await _logger.LogAsync(ex);
+                await _logger.LogAsync(ex, nameof(ServiceBusPublisher));
             }
         }
 
@@ -71,7 +71,7 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
             }
             catch(Exception ex)
             {
-                await _logger.LogAsync(ex);
+                await _logger.LogAsync(ex, nameof(ServiceBusPublisher));
             }
         }
 
@@ -119,7 +119,7 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
             }
             catch(Exception ex)
             {
-                await _logger.LogAsync(ex);
+                await _logger.LogAsync(ex, nameof(ServiceBusPublisher));
             }
             finally
             {

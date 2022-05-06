@@ -13,7 +13,7 @@ namespace FarmCraft.Core.Services.Messaging.Consumer
     /// </summary>
     public class ServiceBusConsumer : IMessageConsumer, IDisposable
     {
-        private readonly FarmCraftLogService<ServiceBusConsumer> _logger;
+        private readonly FarmCraftLogService _logger;
         private readonly ServiceBusProcessor _processor;
 
         private ConcurrentDictionary<Type, IMessageHandler> _handlers = 
@@ -30,7 +30,7 @@ namespace FarmCraft.Core.Services.Messaging.Consumer
         public ServiceBusConsumer(
             MessageBusService service,
             string queueName, 
-            FarmCraftLogService<ServiceBusConsumer> logger
+            FarmCraftLogService logger
         )
         {
             if (service == null)
@@ -114,12 +114,13 @@ namespace FarmCraft.Core.Services.Messaging.Consumer
                     await _logger.LogAsync(
                         LogLevel.Warning,
                         $"Handler not found for {message.MessageType}",
-                        null
+                        null,
+                        nameof(ServiceBusConsumer)
                     );
             }
             catch(Exception ex)
             {
-                await _logger.LogAsync(ex);
+                await _logger.LogAsync(ex, nameof(ServiceBusConsumer));
                 await args.DeadLetterMessageAsync(args.Message);
             }
         }
@@ -131,7 +132,7 @@ namespace FarmCraft.Core.Services.Messaging.Consumer
         /// <returns></returns>
         public async Task HandleError(ProcessErrorEventArgs args)
         {
-            await _logger.LogAsync(args.Exception);
+            await _logger.LogAsync(args.Exception, nameof(ServiceBusConsumer));
         }
     }
 }
