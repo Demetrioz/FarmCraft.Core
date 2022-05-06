@@ -1,20 +1,20 @@
 ﻿using Azure.Messaging.ServiceBus;
-using FarmCraft.Core.Messaging;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using FarmCraft.Core.Data.Entities;
+using FarmCraft.Core.Messages;
+using FarmCraft.Core.Services.Logging;
+using FarmCraft.Core.Services.Messaging.Handler;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 
-namespace FarmCraft.Core.Services.Messaging
+namespace FarmCraft.Core.Services.Messaging.Consumer
 {
     /// <summary>
     /// A Message Consumer for interacting with Azure Service Bus
     /// </summary>
     public class ServiceBusConsumer : IMessageConsumer, IDisposable
     {
-        private readonly ILogger _logger;
-        private static ServiceBusClient _client;
-        private static ServiceBusProcessor _processor;
+        private readonly FarmCraftLogService _logger;
+        private readonly ServiceBusProcessor _processor;
 
         private ConcurrentDictionary<Type, IMessageHandler> _handlers = 
             new ConcurrentDictionary<Type, IMessageHandler>();
@@ -27,30 +27,19 @@ namespace FarmCraft.Core.Services.Messaging
         /// </summary>
         /// <param name="options">Options for connecting to the Service Bus and Queue</param>
         /// <param name="logger">A generic logger</param>
-        public ServiceBusConsumer(IOptions<ConsumerOptions> options, ILogger logger)
+        public ServiceBusConsumer(
+            MessageBusService service,
+            string queueName, 
+            FarmCraftLogService logger
+        )
         {
+            if (service == null)
+                throw new Exception("MessageBusService missing");
+
             _logger = logger;
-
-            ConsumerOptions consumerOptions = options.Value;
-
-            if (_client == null)
-                _client = new ServiceBusClient(consumerOptions.Host);
-
-            if (_processor == null)
-            {
-                _processor = _client.CreateProcessor(
-                    consumerOptions.Queue,
-                    new ServiceBusProcessorOptions
-                    {
-                        AutoCompleteMessages = false
-                    }
-                );
-
-                _processor.ProcessMessageAsync += HandleMessage;
-                _processor.ProcessErrorAsync += HandleError;
-
-                _processor.StartProcessingAsync().Wait();
-            }
+            _processor = service.CreateConsumer(queueName);
+            _processor.ProcessMessageAsync += HandleMessage;
+            _processor.ProcessErrorAsync += HandleError;
         }
 
         /// <summary>
@@ -60,7 +49,11 @@ namespace FarmCraft.Core.Services.Messaging
         public void Dispose()
         {
             _processor.DisposeAsync().GetAwaiter().GetResult();
-            _client.DisposeAsync().GetAwaiter().GetResult();
+        }
+
+        public async Task BeginProcessing()
+        {
+            await _processor.StartProcessingAsync();
         }
 
         /// <summary>
@@ -72,11 +65,12 @@ namespace FarmCraft.Core.Services.Messaging
             where T : IMessage
             where H : IMessageHandler
         {
+            IMessageHandler? handler = Activator.CreateInstance(typeof(H)) as IMessageHandler;
+            if (handler == null)
+                throw new Exception("Invalid Handler Type. Did you implement IMessageHandler?");
+
             Type messageType = typeof(T);
-            _handlers.TryAdd(
-                messageType, 
-                (IMessageHandler)Activator.CreateInstance(typeof(H))
-            );
+            _handlers.TryAdd(messageType, handler);
         }
 
         /// <summary>
@@ -117,11 +111,16 @@ namespace FarmCraft.Core.Services.Messaging
                     await args.CompleteMessageAsync(args.Message);
                 }
                 else 
-                    _logger.LogWarning($"Handler not found for {message.MessageType}");
+                    await _logger.LogAsync(
+                        LogLevel.Warning,
+                        $"Handler not found for {message.MessageType}",
+                        null,
+                        nameof(ServiceBusConsumer)
+                    );
             }
             catch(Exception ex)
             {
-                _logger.LogError(ex.Message);
+                await _logger.LogAsync(ex, nameof(ServiceBusConsumer));
                 await args.DeadLetterMessageAsync(args.Message);
             }
         }
@@ -131,10 +130,9 @@ namespace FarmCraft.Core.Services.Messaging
         /// </summary>
         /// <param name="args">The event arguments from Azure Service Bus</param>
         /// <returns></returns>
-        public virtual Task HandleError(ProcessErrorEventArgs args)
+        public async Task HandleError(ProcessErrorEventArgs args)
         {
-            _logger.LogError(args.Exception.ToString());
-            return Task.CompletedTask;
+            await _logger.LogAsync(args.Exception, nameof(ServiceBusConsumer));
         }
     }
 }

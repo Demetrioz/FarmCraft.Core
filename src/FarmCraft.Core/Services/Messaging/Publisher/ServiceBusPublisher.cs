@@ -1,19 +1,18 @@
 ﻿using Azure.Messaging.ServiceBus;
-using FarmCraft.Core.Messaging;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using FarmCraft.Core.Data.Entities;
+using FarmCraft.Core.Messages;
+using FarmCraft.Core.Services.Logging;
 using Newtonsoft.Json;
 
-namespace FarmCraft.Core.Services.Messaging
+namespace FarmCraft.Core.Services.Messaging.Publisher
 {
     /// <summary>
     /// A Message Publisher for interacting with Azure Service Bus
     /// </summary>
     public class ServiceBusPublisher : IMessagePublisher, IDisposable
     {
-        private readonly ILogger _logger;
-        private static ServiceBusClient _client;
-        private static ServiceBusSender _sender;
+        private readonly FarmCraftLogService _logger;
+        private readonly ServiceBusSender _sender;
 
         /// <summary>
         /// Creates a singular ServiceBusClient and ServiceBusSender if they haven't
@@ -21,17 +20,17 @@ namespace FarmCraft.Core.Services.Messaging
         /// </summary>
         /// <param name="options">Options for connecting to the Service Bus and Queue</param>
         /// <param name="logger">A generic logger</param>
-        public ServiceBusPublisher(IOptions<PublisherOptions> options, ILogger logger)
+        public ServiceBusPublisher(
+            MessageBusService service, 
+            string queueName,
+            FarmCraftLogService logger
+        )
         {
+            if (service == null)
+                throw new Exception("MessageBusService missing");
+
             _logger = logger;
-
-            PublisherOptions publisherOptions = options.Value;
-
-            if(_client == null)
-                _client = new ServiceBusClient(publisherOptions.Host);
-
-            if(_sender == null)
-                _sender = _client.CreateSender(publisherOptions.Queue);
+            _sender = service.CreatePublisher(queueName);
         }
 
         /// <summary>
@@ -41,7 +40,6 @@ namespace FarmCraft.Core.Services.Messaging
         public void Dispose()
         {
             _sender.DisposeAsync().GetAwaiter().GetResult();
-            _client.DisposeAsync().GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -59,7 +57,21 @@ namespace FarmCraft.Core.Services.Messaging
             }
             catch(Exception ex)
             {
-                _logger.LogError(ex.Message);
+                await _logger.LogAsync(ex, nameof(ServiceBusPublisher));
+            }
+        }
+
+        public async Task PublishTelemetry(FarmCraftTelemetry telemetry)
+        {
+            try
+            {
+                string stringMessage = JsonConvert.SerializeObject(telemetry);
+                ServiceBusMessage sbMessage = new ServiceBusMessage(stringMessage);
+                await _sender.SendMessageAsync(sbMessage);
+            }
+            catch(Exception ex)
+            {
+                await _logger.LogAsync(ex, nameof(ServiceBusPublisher));
             }
         }
 
@@ -107,7 +119,7 @@ namespace FarmCraft.Core.Services.Messaging
             }
             catch(Exception ex)
             {
-                _logger.LogError(ex.Message);
+                await _logger.LogAsync(ex, nameof(ServiceBusPublisher));
             }
             finally
             {

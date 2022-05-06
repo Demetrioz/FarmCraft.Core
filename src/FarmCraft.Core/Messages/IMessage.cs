@@ -1,4 +1,4 @@
-﻿namespace FarmCraft.Core.Messaging
+﻿namespace FarmCraft.Core.Messages
 {
     /// <summary>
     /// The base of all FarmCraft messages
