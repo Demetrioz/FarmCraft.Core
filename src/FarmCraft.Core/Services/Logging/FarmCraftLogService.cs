@@ -31,20 +31,23 @@ namespace FarmCraft.Core.Services.Logging
         {
             using (IServiceScope scope = _provider.CreateScope())
             {
-                FarmCraftContext dbContext = scope.ServiceProvider
-                    .GetRequiredService<FarmCraftContext>();
+                IFarmCraftContext dbContext = scope.ServiceProvider
+                    .GetRequiredService<IFarmCraftContext>();
 
-                await dbContext.AddAsync(new FarmCraftLog
+                if(dbContext.Logs != null)
                 {
-                    LogId = Guid.NewGuid().ToString(),
-                    Timestamp = DateTimeOffset.UtcNow,
-                    LogLevel = LogLevel.Error,
-                    Source = _source,
-                    Message = $"{ex.Message} || {ex.InnerException?.Message}",
-                    Data = ex.StackTrace
-                });
+                    await dbContext.AddAsync(new FarmCraftLog
+                    {
+                        LogId = Guid.NewGuid().ToString(),
+                        Timestamp = DateTimeOffset.UtcNow,
+                        LogLevel = LogLevel.Error,
+                        Source = _source,
+                        Message = $"{ex.Message} || {ex.InnerException?.Message}",
+                        Data = ex.StackTrace
+                    });
 
-                await dbContext.SaveChangesAsync();
+                    await dbContext.SaveChangesAsync();
+                }
             }
         }
 
@@ -63,20 +66,23 @@ namespace FarmCraft.Core.Services.Logging
 
             using (IServiceScope scope = _provider.CreateScope())
             {
-                FarmCraftContext dbContext = scope.ServiceProvider
-                    .GetRequiredService<FarmCraftContext>();
+                IFarmCraftContext dbContext = scope.ServiceProvider
+                    .GetRequiredService<IFarmCraftContext>();
 
-                await dbContext.AddAsync(new FarmCraftLog
+                if(dbContext.Logs != null)
                 {
-                    LogId = Guid.NewGuid().ToString(),
-                    Timestamp = DateTimeOffset.UtcNow,
-                    LogLevel = level,
-                    Source = _source,
-                    Message = message,
-                    Data = dataString
-                });
+                    await dbContext.AddAsync(new FarmCraftLog
+                    {
+                        LogId = Guid.NewGuid().ToString(),
+                        Timestamp = DateTimeOffset.UtcNow,
+                        LogLevel = level,
+                        Source = _source,
+                        Message = message,
+                        Data = dataString
+                    });
 
-                await dbContext.SaveChangesAsync();
+                    await dbContext.SaveChangesAsync();
+                }
             }
         }
     }

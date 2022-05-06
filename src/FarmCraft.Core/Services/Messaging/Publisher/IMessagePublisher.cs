@@ -1,4 +1,4 @@
-﻿using FarmCraft.Core.Messaging;
+﻿using FarmCraft.Core.Messages;
 
 namespace FarmCraft.Core.Services.Messaging.Publisher
 {

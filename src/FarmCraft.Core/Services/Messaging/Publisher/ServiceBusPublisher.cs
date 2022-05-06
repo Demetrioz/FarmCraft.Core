@@ -1,5 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
-using FarmCraft.Core.Messaging;
+using FarmCraft.Core.Data.Entities;
+using FarmCraft.Core.Messages;
 using FarmCraft.Core.Services.Logging;
 using Newtonsoft.Json;
 
@@ -21,7 +22,7 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
         /// <param name="logger">A generic logger</param>
         public ServiceBusPublisher(
             MessageBusService service, 
-            PublisherOptions options, 
+            string queueName,
             FarmCraftLogService<ServiceBusPublisher> logger
         )
         {
@@ -29,7 +30,7 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
                 throw new Exception("MessageBusService missing");
 
             _logger = logger;
-            _sender = service.CreatePublisher(options.Queue);
+            _sender = service.CreatePublisher(queueName);
         }
 
         /// <summary>
@@ -51,6 +52,20 @@ namespace FarmCraft.Core.Services.Messaging.Publisher
             try
             {
                 string stringMessage = JsonConvert.SerializeObject(message);
+                ServiceBusMessage sbMessage = new ServiceBusMessage(stringMessage);
+                await _sender.SendMessageAsync(sbMessage);
+            }
+            catch(Exception ex)
+            {
+                await _logger.LogAsync(ex);
+            }
+        }
+
+        public async Task PublishTelemetry(FarmCraftTelemetry telemetry)
+        {
+            try
+            {
+                string stringMessage = JsonConvert.SerializeObject(telemetry);
                 ServiceBusMessage sbMessage = new ServiceBusMessage(stringMessage);
                 await _sender.SendMessageAsync(sbMessage);
             }

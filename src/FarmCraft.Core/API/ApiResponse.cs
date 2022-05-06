@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FarmCraft.Core.Data.DTOs;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FarmCraft.Core.API
 {
@@ -17,6 +18,7 @@ namespace FarmCraft.Core.API
             new OkObjectResult(new FarmCraftApiResponse
             {
                 RequestId = Guid.NewGuid(),
+                Status = ResponseStatus.Success,
                 Data = data,
                 Error = null
             });
@@ -30,6 +32,7 @@ namespace FarmCraft.Core.API
             new CreatedResult("created", new FarmCraftApiResponse
             {
                 RequestId = Guid.NewGuid(),
+                Status = ResponseStatus.Success,
                 Data = data,
                 Error = null
             });
@@ -43,6 +46,7 @@ namespace FarmCraft.Core.API
             new ConflictObjectResult(new FarmCraftApiResponse
             {
                 RequestId = Guid.NewGuid(),
+                Status = ResponseStatus.Failure,
                 Data = null,
                 Error = error
             });
@@ -55,6 +59,7 @@ namespace FarmCraft.Core.API
             new UnauthorizedObjectResult(new FarmCraftApiResponse
             {
                 RequestId = Guid.NewGuid(),
+                Status = ResponseStatus.Failure,
                 Data = null,
                 Error = "Unauthorized"
             });
@@ -68,6 +73,7 @@ namespace FarmCraft.Core.API
             new BadRequestObjectResult(new FarmCraftApiResponse
             {
                 RequestId = Guid.NewGuid(),
+                Status = ResponseStatus.Failure,
                 Data = null,
                 Error = error
             });

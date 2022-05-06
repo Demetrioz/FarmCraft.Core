@@ -1,4 +1,4 @@
-﻿using FarmCraft.Core.Messaging;
+﻿using FarmCraft.Core.Messages;
 using FarmCraft.Core.Services.Messaging.Handler;
 
 namespace FarmCraft.Core.Services.Messaging.Consumer

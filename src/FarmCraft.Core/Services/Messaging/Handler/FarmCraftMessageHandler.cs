@@ -1,4 +1,4 @@
-﻿using FarmCraft.Core.Messaging;
+﻿using FarmCraft.Core.Messages;
 using Newtonsoft.Json;
 
 namespace FarmCraft.Core.Services.Messaging.Handler

@@ -1,4 +1,4 @@
-﻿namespace FarmCraft.Core.Messaging
+﻿namespace FarmCraft.Core.Messages
 {
     /// <summary>
     /// The type of messages sent and received by FarmCraft services

@@ -1,6 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using FarmCraft.Core.Data.Entities;
-using FarmCraft.Core.Messaging;
+using FarmCraft.Core.Messages;
 using FarmCraft.Core.Services.Logging;
 using FarmCraft.Core.Services.Messaging.Handler;
 using Newtonsoft.Json;
@@ -29,7 +29,7 @@ namespace FarmCraft.Core.Services.Messaging.Consumer
         /// <param name="logger">A generic logger</param>
         public ServiceBusConsumer(
             MessageBusService service,
-            ConsumerOptions options, 
+            string queueName, 
             FarmCraftLogService<ServiceBusConsumer> logger
         )
         {
@@ -37,14 +37,9 @@ namespace FarmCraft.Core.Services.Messaging.Consumer
                 throw new Exception("MessageBusService missing");
 
             _logger = logger;
-
-            if (_processor == null)
-            {
-                _processor = service.CreateConsumer(options.Queue);
-
-                _processor.ProcessMessageAsync += HandleMessage;
-                _processor.ProcessErrorAsync += HandleError;
-            }
+            _processor = service.CreateConsumer(queueName);
+            _processor.ProcessMessageAsync += HandleMessage;
+            _processor.ProcessErrorAsync += HandleError;
         }
 
         /// <summary>

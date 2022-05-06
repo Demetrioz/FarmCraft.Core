@@ -9,9 +9,8 @@ namespace FarmCraft.Core.Services.Messaging
 
         public MessageBusService(IOptions<MessageBusOptions> options)
         {
-            MessageBusOptions mbOptions = options.Value;
             if (_client == null)
-                _client = new ServiceBusClient(mbOptions.Host);
+                _client = new ServiceBusClient(options.Value.Host);
         }
 
         public void Dispose()
