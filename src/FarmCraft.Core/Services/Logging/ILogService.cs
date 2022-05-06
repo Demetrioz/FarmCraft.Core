@@ -12,7 +12,7 @@ namespace FarmCraft.Core.Services.Logging
         /// </summary>
         /// <param name="ex">The exception that should be logged</param>
         /// <returns></returns>
-        Task LogAsync(Exception ex);
+        Task LogAsync(Exception ex, string? source = null);
 
         /// <summary>
         /// Logs a custom message at the given log level.
@@ -21,6 +21,6 @@ namespace FarmCraft.Core.Services.Logging
         /// <param name="message">The message that should be logged</param>
         /// <param name="data">Optional data that accompanies the logged event</param>
         /// <returns></returns>
-        Task LogAsync(LogLevel level, string message, object? data);
+        Task LogAsync(LogLevel level, string message, object? data, string? source = null);
     }
 }

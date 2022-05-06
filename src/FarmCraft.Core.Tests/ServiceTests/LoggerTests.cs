@@ -32,7 +32,7 @@ namespace FarmCraft.Core.Tests.ServiceTests
             ServiceProvider = new ServiceCollection()
                 .AddDbContext<IFarmCraftContext, Data.TestContext>(options =>
                     options.UseCosmos(settings.CosmosConnection, settings.CosmosDb))
-                .AddSingleton<ILogService, FarmCraftLogService<LoggerTests>>()
+                .AddSingleton<ILogService, FarmCraftLogService>()
                 .BuildServiceProvider();
         }
 

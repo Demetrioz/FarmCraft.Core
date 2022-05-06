@@ -5,10 +5,9 @@ using Newtonsoft.Json;
 
 namespace FarmCraft.Core.Services.Logging
 {
-    public class FarmCraftLogService<T> : ILogService where T : class
+    public class FarmCraftLogService : ILogService
     {
         private readonly IServiceProvider _provider;
-        private readonly string _source;
 
         /// <summary>
         /// Sets the LogService's context and source
@@ -17,7 +16,6 @@ namespace FarmCraft.Core.Services.Logging
         public FarmCraftLogService(IServiceProvider provider) 
         {
             _provider = provider;
-            _source = typeof(T).Name;
         }
 
         /// <summary>
@@ -27,7 +25,7 @@ namespace FarmCraft.Core.Services.Logging
         /// </summary>
         /// <param name="ex">The exception that should be logged</param>
         /// <returns></returns>
-        public async Task LogAsync(Exception ex)
+        public async Task LogAsync(Exception ex, string? source = null)
         {
             using (IServiceScope scope = _provider.CreateScope())
             {
@@ -41,7 +39,7 @@ namespace FarmCraft.Core.Services.Logging
                         LogId = Guid.NewGuid().ToString(),
                         Timestamp = DateTimeOffset.UtcNow,
                         LogLevel = LogLevel.Error,
-                        Source = _source,
+                        Source = source,
                         Message = $"{ex.Message} || {ex.InnerException?.Message}",
                         Data = ex.StackTrace
                     });
@@ -58,7 +56,7 @@ namespace FarmCraft.Core.Services.Logging
         /// <param name="message">The message that should be logged</param>
         /// <param name="data">Optional data that accompanies the logged event</param>
         /// <returns></returns>
-        public async Task LogAsync(LogLevel level, string message, object? data)
+        public async Task LogAsync(LogLevel level, string message, object? data, string? source = null)
         {
             string? dataString = data != null
                 ? JsonConvert.SerializeObject(data)
@@ -76,7 +74,7 @@ namespace FarmCraft.Core.Services.Logging
                         LogId = Guid.NewGuid().ToString(),
                         Timestamp = DateTimeOffset.UtcNow,
                         LogLevel = level,
-                        Source = _source,
+                        Source = source,
                         Message = message,
                         Data = dataString
                     });
