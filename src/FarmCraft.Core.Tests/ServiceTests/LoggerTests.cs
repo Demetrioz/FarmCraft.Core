@@ -75,7 +75,8 @@ namespace FarmCraft.Core.Tests.ServiceTests
                 await logger.LogAsync(
                     level, 
                     message, 
-                    testObject
+                    testObject,
+                    nameof(LoggerTests)
                 );
 
                 FarmCraftLog? log = await dbContext.Logs.FirstOrDefaultAsync();

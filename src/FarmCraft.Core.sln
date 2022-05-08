@@ -5,7 +5,9 @@ VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FarmCraft.Core", "FarmCraft.Core\FarmCraft.Core.csproj", "{817E5E0E-E849-48DE-BF42-9E24A5272B36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FarmCraft.Core.Tests", "FarmCraft.Core.Tests\FarmCraft.Core.Tests.csproj", "{9A1A7E55-AF3B-4D76-8475-78923C70252F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FarmCraft.Core.Tests", "FarmCraft.Core.Tests\FarmCraft.Core.Tests.csproj", "{9A1A7E55-AF3B-4D76-8475-78923C70252F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FarmCraft.CoreTest", "FarmCraft.CoreTest\FarmCraft.CoreTest.csproj", "{A0890DCF-8290-4320-A936-C939A612F710}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{9A1A7E55-AF3B-4D76-8475-78923C70252F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A1A7E55-AF3B-4D76-8475-78923C70252F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A1A7E55-AF3B-4D76-8475-78923C70252F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0890DCF-8290-4320-A936-C939A612F710}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0890DCF-8290-4320-A936-C939A612F710}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0890DCF-8290-4320-A936-C939A612F710}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0890DCF-8290-4320-A936-C939A612F710}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

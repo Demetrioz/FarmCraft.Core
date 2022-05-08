@@ -11,3 +11,4 @@ _site
 .vs
 nuget.config
 appsettings.json
+appsettings.*.json

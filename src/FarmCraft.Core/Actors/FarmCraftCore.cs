@@ -24,12 +24,18 @@ namespace FarmCraft.Core.Actors
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var hocon = ConfigurationFactory.ParseString(await File.ReadAllTextAsync("actor.conf", stoppingToken));
+            var hocon = ConfigurationFactory.Default();
             var bootStrap = BootstrapSetup.Create().WithConfig(hocon);
             var di = DependencyResolverSetup.Create(_serviceProvider);
             var actorSystemSetup = bootStrap.And(di);
             _actorSystem = ActorSystem.Create("FarmCraftCore", actorSystemSetup);
-            _root = _actorSystem.ActorOf(Props.Create(() => (T)Activator.CreateInstance(typeof(T))), "FarmCraftManager");
+            InitializeRootActor();
+        }
+
+        protected virtual void InitializeRootActor()
+        {
+            var props = DependencyResolver.For(_actorSystem).Props<T>();
+            _root = _actorSystem.ActorOf(props, "FarmCraftManager");
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken)

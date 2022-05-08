@@ -1,11 +1,13 @@
 ﻿using Akka.Actor;
 using Akka.TestKit.NUnit;
+using FarmCraft.Core.Data.Context;
 using FarmCraft.Core.Data.Entities;
 using FarmCraft.Core.Messages;
 using FarmCraft.Core.Messages.Telemetry;
 using FarmCraft.Core.Services.Messaging;
 using FarmCraft.Core.Tests.ActorTests.Actors;
 using FarmCraft.Core.Tests.Config;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -18,8 +20,6 @@ namespace FarmCraft.Core.Tests.ActorTests
     [TestFixture]
     public class PublisherTests : TestKit
     {
-        // https://github.com/akkadotnet/akka.net/issues/2130
-        private TimeSpan EpsilonValueForWithins => new TimeSpan(0, 0, 1);
         private IServiceProvider? ServiceProvider { get; set; }
 
         [OneTimeSetUp]
@@ -39,6 +39,8 @@ namespace FarmCraft.Core.Tests.ActorTests
                      options.Host = settings.ServiceBusHost;
                      options.Queue = settings.ServiceBusQueue;
                  })
+                .AddDbContext<IFarmCraftContext, Data.TestContext>(options =>
+                    options.UseCosmos(settings.CosmosConnection, settings.CosmosDb))
                 .AddSingleton<MessageBusService>()
                 .BuildServiceProvider();
         }
@@ -51,31 +53,41 @@ namespace FarmCraft.Core.Tests.ActorTests
 
             try
             {
-                IActorRef publisher = Sys.ActorOf(
-                    Props.Create(() => new PublisherActor(ServiceProvider)));
-                publisher.Tell(
-                    new AskToPublishTelemetry(
-                        new FarmCraftTelemetry
-                        {
-                            DeviceId = Guid.NewGuid().ToString(),
-                            Level = TelemetryLevel.Info,
-                            Timestamp = DateTimeOffset.UtcNow,
-                            Temperature = 43.4,
-                            Humidity = 43.4,
-                        }
-                    )
-                );
+                using (IServiceScope scope = ServiceProvider.CreateScope())
+                {
+                    MessageBusService messageBusService = scope.ServiceProvider
+                        .GetRequiredService<MessageBusService>();
 
-                FarmCraftActorResponse response = ExpectMsg<FarmCraftActorResponse>(
-                    TimeSpan.FromSeconds(5));
-                
-                Assert.True(response != null);
+                    IFarmCraftContext dbContext = scope.ServiceProvider
+                        .GetRequiredService<IFarmCraftContext>();
 
-                bool result = (bool)response.Data;
+                    IActorRef publisher = Sys.ActorOf(
+                        Props.Create(() => new PublisherActor(messageBusService, dbContext)));
 
-                Assert.True(result);
+                    publisher.Tell(
+                        new AskToPublishTelemetry(
+                            new FarmCraftTelemetry
+                            {
+                                DeviceId = Guid.NewGuid().ToString(),
+                                Level = TelemetryLevel.Info,
+                                Timestamp = DateTimeOffset.UtcNow,
+                                Temperature = 43.4,
+                                Humidity = 43.4,
+                            }
+                        )
+                    );
 
-                publisher.Tell(PoisonPill.Instance);
+                    FarmCraftActorResponse response = ExpectMsg<FarmCraftActorResponse>(
+                        TimeSpan.FromSeconds(5));
+
+                    Assert.True(response != null);
+
+                    bool result = (bool)response.Data;
+
+                    Assert.True(result);
+
+                    publisher.Tell(PoisonPill.Instance);
+                }
             }
             catch (Exception ex)
             {
