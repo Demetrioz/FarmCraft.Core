@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using Akka.DependencyInjection;
 
 namespace FarmCraft.Core.Actors
 {
@@ -6,9 +7,9 @@ namespace FarmCraft.Core.Actors
     /// The root actor of the FarmCraft services. This class can be implemented differently
     /// within each service, but will manage the overall actors and message routing.
     /// </summary>
-    public abstract class FarmCraftManager : FarmCraftActor
+    public abstract class FarmCraftManager : ReceiveActor
     {
-        public FarmCraftManager(IServiceProvider provider) : base(provider)
+        public FarmCraftManager()
         {
         }
 
@@ -21,17 +22,15 @@ namespace FarmCraft.Core.Actors
         /// <param name="message">The message object that should be handled by the
         /// created actor</param>
         /// <returns>Returns the actor's response to the caller</returns>
-        protected async Task HandleWithInstanceOf<T>(object message) where T : FarmCraftActor
+        protected async Task HandleWithInstanceOf<T>(object message) where T : ReceiveActor
         {
             // Since we're async, we lose the context if we don't make a reference to it
             IUntypedActorContext context = Context;
             IActorRef sender = Sender;
 
             string actorName = $"{typeof(T).Name}-{DateTimeOffset.Now:yyyy-MM-ddHH:mm:ss:fffffff}";
-            IActorRef actorRef = context.ActorOf(
-                Props.Create(() => (T)Activator.CreateInstance(typeof(T), _serviceProvider)),
-                actorName
-            );
+            Props props = DependencyResolver.For(context.System).Props<T>();
+            IActorRef actorRef = context.ActorOf(props, actorName);
 
             object result = await actorRef.Ask(message, TimeSpan.FromSeconds(30));
 
