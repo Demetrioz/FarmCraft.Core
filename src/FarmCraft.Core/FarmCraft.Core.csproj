@@ -7,7 +7,7 @@
 
 	  <PackageId>FarmCraft.Core</PackageId>
 	  <Title>FarmCraft.Core</Title>
-	  <Version>0.0.4-alpha</Version>
+	  <Version>0.0.5-alpha</Version>
 	  <Copyright>Kevin Williams 2022</Copyright>
 	  <PackageProjectUrl>https://github.com/Demetrioz/FarmCraft.Core</PackageProjectUrl>
 	  <PackageTags>FarmCraft</PackageTags>

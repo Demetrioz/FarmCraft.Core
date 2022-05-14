@@ -28,7 +28,7 @@
         /// <summary>
         /// Data returned from the api or actor
         /// </summary>
-        public object Data { get; set; }
+        public object? Data { get; set; }
 
         /// <summary>
         /// An error message if something goes wrong
