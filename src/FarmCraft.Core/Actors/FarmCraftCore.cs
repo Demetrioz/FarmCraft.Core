@@ -24,7 +24,7 @@ namespace FarmCraft.Core.Actors
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var hocon = ConfigurationFactory.Default();
+            var hocon = BuildActorConfig();
             var bootStrap = BootstrapSetup.Create().WithConfig(hocon);
             var di = DependencyResolverSetup.Create(_serviceProvider);
             var actorSystemSetup = bootStrap.And(di);
@@ -32,6 +32,23 @@ namespace FarmCraft.Core.Actors
             InitializeRootActor();
         }
 
+        /// <summary>
+        /// An overridable function to build the Akka configuration.
+        /// This is called at the beginning of ExecuteAsync and defaults
+        /// to returning the default Akka config
+        /// </summary>
+        /// <returns>An Akka Configuration</returns>
+        protected virtual Akka.Configuration.Config BuildActorConfig()
+        {
+            return ConfigurationFactory.Default();
+        }
+
+        /// <summary>
+        /// An overridable function to build the root actor in the actor system.
+        /// This is called at the end of ExecuteAsync, and defaults to creating
+        /// an actor of type T with dependency injection, where T is the 
+        /// FarmCraftManager
+        /// </summary>
         protected virtual void InitializeRootActor()
         {
             var props = DependencyResolver.For(_actorSystem).Props<T>();
